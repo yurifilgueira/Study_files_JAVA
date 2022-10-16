@@ -20,52 +20,50 @@ public class Program {
 		Locale.setDefault(Locale.US);
 		Scanner sc = new Scanner(System.in);
 		
-		List<String> productsList = new ArrayList<>();
+		List<Product> listInformations = new ArrayList<>();
+
+		System.out.print("Enter with a folder path: ");
+		String strPath = sc.nextLine();
 		
-		System.out.print("Enter a folder path: ");
-		String sourceFileStr = sc.nextLine();
-		
-		File sourceFile = new File(sourceFileStr);
+		File sourceFile = new File(strPath);
 		String sourceFolderStr = sourceFile.getParent();
 		
 		boolean success = new File(sourceFolderStr + "\\out").mkdir();
 		String targetFileStr = sourceFolderStr + "\\out\\summary.csv";
+		
+		try (BufferedReader br = new BufferedReader(new FileReader(strPath))){
+			
+			String line = br.readLine();
+			
+			while (line != null) {
+				String[] informations = line.split(",");
+				String name = informations[0];
+				Double price = Double.parseDouble(informations[1]);
+				Integer qtt = Integer.parseInt(informations[2]);
 				
-		try(BufferedReader br = new BufferedReader(new FileReader(sourceFileStr))){
-		    String line = br.readLine();
-		    while (br.readLine() != null) {
-				String[]  informationsProduct = line.split(",");
-				Product product = converter(informationsProduct);
-				productsList.add(product.getName() + product.getPrice());
-				line = br.readLine();
-		    }			    
-			try(BufferedWriter bw = new BufferedWriter(new FileWriter(targetFileStr))){
-			    for (String infor : productsList) {
-			    	bw.write(infor);
-			    	bw.newLine();
-			    }
-			    
-			    System.out.println(targetFileStr + " Was created: " + success);
-			    
+				listInformations.add(new Product(name, price, qtt));
+			    line = br.readLine();
 			}
-			catch(IOException e) {
+			
+			try (BufferedWriter bw = new BufferedWriter(new FileWriter(targetFileStr))){
+			      for (Product item : listInformations) {
+			    	  bw.write(item.getName() + ", " + String.format("%.2f", item.totalPrice()));
+			    	  bw.newLine();
+			      }
+			      
+			      System.out.println(targetFileStr + " was created: " + success);
+			}
+			catch(IOException e){
 				System.out.println("Error writing file: " + e.getMessage());
 			}
+			
 		}
-		catch(IOException e){
+		catch (IOException e) {
 			System.out.println("Error reading file: " + e.getMessage());
 		}
 		
 		sc.close();
-
-	}
-
-	public static Product converter(String[] informationsProduct) {
-	    String name = informationsProduct[0];
-	    Double price = Double.parseDouble(informationsProduct[1]);
-	    int qtt = Integer.parseInt(informationsProduct[2]);
-	    
-	    return new Product(name, price, qtt);
+		
 	}
 	
 }
